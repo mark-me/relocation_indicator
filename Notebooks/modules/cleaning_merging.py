@@ -1,3 +1,7 @@
+import pandas as pd
+import numpy as np
+import gcsfs
+
 def month_delta(date, delta):
     """Adding/subtracting months to/from a date."""
     m, y = (date.month + delta) % 12, date.year + ((date.month) + delta - 1) // 12
@@ -15,10 +19,9 @@ def aggregate_board_members(df):
     df = df.drop(columns=col_list_to_sum)
     return df
     
-def get_relocation_dates(date_dataset):
+def get_relocation_dates(date_dataset, bucket):
     """ Reading relocation data of previous addresses."""
     blob_list = list(bucket.list_blobs(prefix='location_start_date.CSV'))
-
     for blob in blob_list: 
         with fs.open('graydon-data/' + blob.name) as f:
             df_relocation_dates = pd.read_csv(f, sep=',', 
@@ -28,19 +31,17 @@ def get_relocation_dates(date_dataset):
             
     return(df_relocation_dates)
 
-def get_month_filenames(df_date_months, dir_data):
+def get_month_filenames(df_date_months, bucket, dir_data):
     """ Get the file names of number of the months in the data frame """
     month_files = [] # List of month files
     
     df_date_months['year'] = df_date_months.date_month.dt.year
     list_years = df_date_months['year'].unique()
-
     # If there are multiple years, iterate through years  
     for year in list_years:
         # Get the year's data file names
         dir_data_year = dir_data + '/' + str(year)
         list_blob = list(bucket.list_blobs(prefix=dir_data_year))
-
         # finding out which month files should be processed by looking which contain the first month date (YYYY-mm-01)
         df_year_months = df_date_months[df_date_months['year'] == year]['date_month']
         for blob in list_blob:
@@ -50,7 +51,42 @@ def get_month_filenames(df_date_months, dir_data):
                     
     return(month_files)
 
-def get_targets(date_month, columns_targets, dir_data):
+def clean_data(df):
+   """Cleans data and returns formatted df"""
+   df['date_month'] = pd.to_datetime(df['date_month'])
+   df['financial_calamity_outcome'] = df['financial_calamity_outcome'].fillna(-1)
+   df['qty_employees'] = df['qty_employees'].str.strip()
+   df.loc[df.qty_employees == 'NA', 'qty_employees'] = None
+   df['year_qty_employees'] = df['year_qty_employees'].str.strip()
+   df.loc[df.year_qty_employees == 'NA', 'year_qty_employees'] = None
+   df['amt_revenue'] = df['amt_revenue'].str.strip()
+   df.loc[df.amt_revenue == 'NA', 'amt_revenue'] = None
+   df['year_revenue'] = df['year_revenue'].str.strip()
+   df.loc[df.year_revenue == 'NA', 'year_revenue'] = 0
+   df['amt_consolidated_revenue'] = df['amt_consolidated_revenue'].str.strip()
+   df.loc[df.amt_consolidated_revenue == 'NA', 'amt_consolidated_revenue'] = None
+   df['amt_consolidated_revenue'] = df['amt_consolidated_revenue'].astype(str).str.replace(',','.')
+   df['year_consolidated_revenue'] = df['year_consolidated_revenue'].str.strip()
+   df.loc[df.year_consolidated_revenue == 'NA', 'year_consolidated_revenue'] = None
+   df['amt_consolidated_operating_result'] = df['amt_consolidated_operating_result'].str.strip()
+   df.loc[df.amt_consolidated_operating_result == 'NA', 'amt_consolidated_operating_result'] = None
+   df['amt_consolidated_operating_result'] = df['amt_consolidated_operating_result'].astype(str).str.replace(',','.')
+   df['year_consolidated_operating_result'] = df['year_consolidated_operating_result'].str.strip()
+   df.loc[df.year_consolidated_operating_result == 'NA', 'year_consolidated_operating_result'] = None
+   df['score_pd'] = df['score_pd'].str.strip()
+   df.loc[df.score_pd == 'NA', 'score_pd'] = None
+   df['score_pd'] = df['score_pd'].astype(str).str.replace(',','.')
+   df['has_increased_risk'] = df['has_increased_risk'].astype(bool)
+   df.loc[df.date_established < '1700-12-31' , 'date_established'] = None
+   df['date_established'] = pd.to_datetime(df['date_established'])
+   df['amt_operating_result'] = df['amt_operating_result'].str.strip()
+   df.loc[df.amt_operating_result == 'NA', 'amt_operating_result'] = None
+   df['amt_operating_result'] = df['amt_operating_result'].astype(str).str.replace(',','.')
+   df['year_operating_result'] = df['year_consolidated_operating_result'].str.strip()
+   df.loc[df.year_operating_result == 'NA', 'year_operating_result'] = None
+   return df
+
+def get_targets(date_month, columns_targets, bucket, dir_data):
     """ Getting the dependent variable set """
     df_months_combined = pd.DataFrame()  # The data frame which will contain all independent variables
     month_files = []                     # List of month files in scope
@@ -62,7 +98,7 @@ def get_targets(date_month, columns_targets, dir_data):
     df_date_months['date_month'] = df_date_months['date_month'].values.astype('datetime64[M]') # First day of month
     
     # Get the file names of all required month files
-    month_files = get_month_filenames(df_date_months, dir_data)
+    month_files = get_month_filenames(df_date_months, bucket, dir_data)
     
     # Cleaning, transforming and combining month files    
     for month_file in month_files:
@@ -71,7 +107,7 @@ def get_targets(date_month, columns_targets, dir_data):
             df_month = df_month[(df_month['is_sole_proprietor'] == 0)] 
             df_month.columns = (df_month.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', ''))
             df_month = aggregate_board_members(df_month)
-            df_month = clean_month_data(df_month)
+            df_month = clean_data(df_month)
             df_months_combined = df_months_combined.append(df_month)
             print('The number of rows so far by adding', month_file, ":", df_months_combined.shape[0])
             
@@ -79,7 +115,7 @@ def get_targets(date_month, columns_targets, dir_data):
     
     return(df_months_combined)
 
-def get_features(date_month, columns_features, dir_data):
+def get_features(date_month, columns_features, bucket, dir_data):
     """ Getting the independent variable set """
     df_months_combined = pd.DataFrame()  # The data frame which will contain all independent variables
     
@@ -89,7 +125,7 @@ def get_features(date_month, columns_features, dir_data):
     df_date_months['date_month'] = df_date_months['date_month'].values.astype('datetime64[M]') # First day of month
 
     # Get the file names of all required month files
-    month_files = get_month_filenames(df_date_months, dir_data)
+    month_files = get_month_filenames(df_date_months, bucket, dir_data)
                     
     # Cleaning, transforming and combining month files                
     for month_file in month_files:
