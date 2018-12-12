@@ -1,4 +1,4 @@
-# Grayon Moving Indicator 
+# Graydon Moving Indicator 
 
 Based on historical company data, the goal of the project is to build machine learning models that predicts the probability of a company moving in the future
 
