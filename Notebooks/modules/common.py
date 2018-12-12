@@ -1,28 +1,22 @@
+import sys, os
 import gcsfs
 from google.cloud import storage
 
-def save_df_locally(df, dir_prefix, name_dataset, as_json= False):
-    """ Saves df as json or csv locally on server """
-    if as_json:        
-        file_path = dir_prefix + '/dataset_' + name_dataset + '.json'
-        df.to_json(file_path)
-    else:
-        file_path =  dir_prefix + '/dataset_' + name_dataset + '.csv'
-        df.to_csv(file_path)
+def get_dir():
+  return sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
-class GCS_Bucket(object):
+class GC_Data_Processing(object):
 
     def __init__(self, name_project, name_bucket):
         """Returns a new Google Cloud Bucket object."""
         cs = storage.Client()
-        self.fs = gcsfs.GCSFileSystem(project=name_project)
-        self.bucket = cs.get_bucket(name_bucket)
+        self.gc_fs = gcsfs.GCSFileSystem(project=name_project)
+        self.gc_bucket = cs.get_bucket(name_bucket)
 
-    def get_bucket(self):
+    def get_gc_bucket(self):
         return self.bucket
 
-    def get_fs(self):
+    def get_gc_fs(self):
         return self.fs
 
     def upload_blob(self, name_file_source, name_blob_destination):
@@ -34,3 +28,12 @@ class GCS_Bucket(object):
         print('File {} uploaded to {}.'.format(
             name_file_source,
             name_blob_destination))
+
+    def save_df_locally(df, dir_prefix, name_dataset, as_json= False):
+        """ Saves df as json or csv locally on server """
+        if as_json:        
+            file_path = dir_prefix + '/dataset_' + name_dataset + '.json'
+            df.to_json(file_path)
+        else:
+            file_path =  dir_prefix + '/dataset_' + name_dataset + '.csv'
+            df.to_csv(file_path)
