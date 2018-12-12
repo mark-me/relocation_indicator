@@ -107,20 +107,25 @@ class Cleaner_Merger(GC_Data_Processing):
 
     # Getting the relocation data
     df_relocation_dates = self.get_relocation_dates()
-    
     # Getting all company, branch, month combinations
     df_branch_months = df_year_months[['id_company', 'id_branch', 'date_month']]
     df_branch_months = df_branch_months.merge(df_relocation_dates, 
                                               on=['id_company', 'id_branch'], 
                                               how='left')
+    # Removing all relocation dates after the current month
+    df_branch_months = df_branch_months[df_branch_months['date_month'] > df_branch_months['date_relocation_last']]
+    # Getting the latest relocation dates
     df_max_dates = df_branch_months.groupby(['id_company', 'id_branch', 'date_month'])['date_relocation_last', 'date_relocation_penultimate'].max()
-    
-    # Adding the new data to the original year data
-    # df_year_months = df_year_months.merge(df_max_dates,
-    #                                       on=['id_company', 'id_branch', 'date_month'], 
-    #                                       how='left')
+    df_max_dates = df_max_dates.reset_index()
+    # Calculate years since relocations
+    df_max_dates['years_current_location'] = (df_max_dates.date_month - df_max_dates.date_relocation_last)/np.timedelta64(1, 'Y')
+    df_max_dates['years_previous_location'] = (df_max_dates.date_month - df_max_dates.date_relocation_penultimate)/np.timedelta64(1, 'Y')
 
-    return(df_year_months)  
+    # Adding the new data to the original year data
+    df_year_months = df_year_months.merge(df_max_dates,
+                                          on=['id_company', 'id_branch', 'date_month'],
+                                          how='left')
+    return(df_year_months)
 
   def get_features(self, date_month, columns_targets):
     """ Getting the features set """
@@ -133,22 +138,23 @@ class Cleaner_Merger(GC_Data_Processing):
                                   columns=['date_month'])
     df_date_months['date_month'] = df_date_months['date_month'].values.astype('datetime64[M]') # First day of month
 
-    # Get the file names of all required month files
-    month_files = self.get_month_filenames(df_date_months)
+    month_files = self.get_month_filenames(df_date_months) # Get the file names of all required month files
 
     # Cleaning, transforming and combining month files
     for month_file in month_files:
       with self.gc_fs.open('graydon-data/' + month_file) as f:
-        df_month = pd.read_csv(f, sep=';', usecols= columns_targets, index_col=False, nrows = 20000)
+        df_month = pd.read_csv(f, sep=';', usecols= columns_targets, index_col=False, nrows = 5000)
+        print('Read', month_file, "with", df_month.shape[0], "rows")
         df_month = df_month[(df_month['is_sole_proprietor'] == 0)] 
+        print('After removing sole proprietors there are', df_month.shape[0], "rows are left")
         df_month.columns = (df_month.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', ''))
         df_month = self.aggregate_board_members(df_month)
         df_month = self.clean_data(df_month)
         df_months_combined = df_months_combined.append(df_month)
         print('The number of rows so far by adding', month_file, ":", df_months_combined.shape[0])
 
-      df_months_combined = self.add_previous_relocation_dates(df_months_combined)
-      df_months_combined['date_dataset'] = date_month
+    df_months_combined = self.add_previous_relocation_dates(df_months_combined)
+    df_months_combined['date_dataset'] = date_month # Add the identifier for a data-set
 
     return(df_months_combined)
 
@@ -164,16 +170,18 @@ class Cleaner_Merger(GC_Data_Processing):
     # Get the file names of all required month files
     month_files = self.get_month_filenames(df_date_months)
 
-    # Cleaning, transforming and combining month files            
+    # Cleaning, transforming and combining month files
     for month_file in month_files:
       with self.gc_fs.open('graydon-data/' + month_file) as f:
-        df_month = pd.read_csv(f, sep=';', usecols= columns_features, index_col=False)   
-        df_month = df_month[(df_month['is_sole_proprietor'] == 0)] # & (one_month_df['is_discontinued'] == 0) 
+        df_month = pd.read_csv(f, sep=';', usecols= columns_features, index_col=False, nrows = 5000)  
+        print('Read', month_file, "with", df_month.shape[0], "rows")
+        df_month = df_month[(df_month['is_sole_proprietor'] == 0)] # & (one_month_df['is_discontinued'] == 0)
+        print('After removing sole proprietors there are', df_month.shape[0], "rows are left")
         df_month.columns = (df_month.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', ''))
         df_months_combined = df_months_combined.append(df_month)
         print('The number of rows so far by adding ', month_file, ":", df_months_combined.shape[0])
 
-    df_months_combined['date_dataset'] = date_month
+    df_months_combined['date_dataset'] = date_month # Add the identifier for a data-set
 
     # Aggregating data to year
     df_months_combined = df_months_combined.groupby(['date_dataset', 
