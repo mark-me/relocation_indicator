@@ -194,7 +194,26 @@ def read_all_csv_months_yearly_from_bucket_merged(years_to_read_in_list, dir_pre
             print('The number of rows so far is: ', all_years_merged_df.shape[0])
     return all_years_merged_df
 	
-
+def create_basetable(year_list, dir_prefix = ''):
+    """ Reads a whole year of data from the already aggregated files and creates basetable """
+    dtype = create_dict_types_aggregated_data()
+    parse_dates = create_parse_dates_list_aggregated_data()
+    basetable = pd.DataFrame()
+    for year in year_list:
+        full_year_df = pd.DataFrame()
+        print('Starting with year: ', year)
+        print(dir_prefix)
+        blob_list = list(bucket.list_blobs(prefix=dir_prefix))    
+        for blob in blob_list:  
+            if year in blob.name:
+                print('Processing file: ', blob.name)
+                with fs.open('graydon-data/' + blob.name) as f:
+                    full_year_df = pd.read_csv(f, sep=',', index_col=0, dtype=dtype, parse_dates=parse_dates 
+                                            )   
+                print('The number of rows of the year read is far is: ', full_year_df.shape[0])
+        basetable = basetable.append(full_year_df)
+    print('The final number of rows of the basetable created is: ', basetable.shape[0])
+    return basetable
 
 
       
