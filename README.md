@@ -27,10 +27,12 @@ The structure of the project is the following
     4) Save the files locally and (if possible) to the bucket
 
 ### (C) Modelling
-    Contains ipython notebooks for modeling the aggregated and merged data. The filenames indicate the type of model.
+    Contains ipython notebooks for modeling the aggregated and merged data. 
+    The filenames indicate the type of model.
 
 ### (D) Exploration
-    Contains ipython notebooks for exploring the data.  The baseline probability is computed from compute_baseline_probability_yearly.ipynb.
+    Contains ipython notebooks for exploring the data.  
+    The baseline probability is computed from compute_baseline_probability_yearly.ipynb.
     
 ### GC Bucket structure
     - graydon-data
