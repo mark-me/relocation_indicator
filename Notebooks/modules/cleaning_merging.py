@@ -123,6 +123,7 @@ class Cleaner_Merger(GC_Data_Processing):
       df_branch_months = df_branch_months.merge(df_relocation_dates, 
                                                 on=['id_company', 'id_branch'], 
                                                 how='left')
+      print(df_branch_months.dtypes)
       # Removing all relocation dates after the current month
       df_branch_months = df_branch_months[df_branch_months['date_month'] > df_branch_months['date_relocation_last']]
       # Getting the latest relocation dates
