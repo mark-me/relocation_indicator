@@ -282,13 +282,11 @@ class Aggregate_Transform(GC_Data_Processing):
         df[['has_financial_calamity', 'is_discontinued_any', 
             'SBI_has_changed', 'code_legal_form_has_changed']] = df[['has_financial_calamity', 'is_discontinued_any',
                                                                      'code_legal_form_has_changed', 'SBI_has_changed']].fillna(value=False)
-        
         columns_to_zero = ['mean_qty_issued_credit_reports', 'qty_green_flags', 'qty_orange_flags', 
                            'qty_red_flags', 'AAA', 'AA', 'A', 'BBB', 'B' , 'CCC', 'CC', 'C', 'D', 
                            'NR', 'qty_address_mutations_year', 'qty_started_names_year', 
                            'qty_stopped_names_year', 'qty_board_changes_year', 'code_legal_form_group_1', 
                            'code_legal_form_group_2', 'SBI_group_1', 'SBI_group_2']
-        
         df[columns_to_zero] = df[columns_to_zero].fillna(value=0)
         df = df.replace([np.inf, -np.inf], np.nan)
         return df 
@@ -323,7 +321,7 @@ class Aggregate_Transform(GC_Data_Processing):
         df = self.impute_na_inf(df)
         return df    
 
-    def aggregate_transforme_data(self, date_dataset):
+    def aggregate_transform_data(self, date_dataset):
         print("Reading merged data for", date_dataset.strftime('%Y-%m-%d'))
         df = self.get_merged_data(data_dataset)
         print("Read", df.shape[0], "rows with", df.shape[1], "columns.")
