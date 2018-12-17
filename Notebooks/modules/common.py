@@ -21,9 +21,11 @@ class GC_Data_Processing(object):
     def local_file_to_bucket(self, file_source, dir_bucket):
         """Uploads a file to the Google Cloud Bucket."""
         file_destination = dir_bucket + "/" + os.path.basename(file_source)
-        print(file_destination)
         blob = self.gc_bucket.blob(file_destination)
         blob.upload_from_filename(file_source)
+        print('File {} uploaded to {}.'.format(
+            file_source,
+            file_destination))
 
     def get_df_from_bucket(self, file_path, sep = ",", 
                            index_col = None, dtype = None, na_values = None,

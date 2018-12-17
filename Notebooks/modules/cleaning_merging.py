@@ -123,7 +123,6 @@ class Cleaner_Merger(GC_Data_Processing):
       df_branch_months = df_branch_months.merge(df_relocation_dates, 
                                                 on=['id_company', 'id_branch'], 
                                                 how='left')
-      print(df_branch_months.dtypes)
       # Removing all relocation dates after the current month
       df_branch_months = df_branch_months[df_branch_months['date_month'] > df_branch_months['date_relocation_last']]
       # Getting the latest relocation dates
@@ -215,20 +214,19 @@ class Cleaner_Merger(GC_Data_Processing):
                                      how='left')
       bool_na_relocation = df_monthly['has_relocated']
 
-  def clean_merge_data(self, date_month):
+  def clean_merge_data(self, date_dataset):
       """Collecting all input data to form a montly data file."""
       print("Reading and cleaning features")
-      df_features = self.get_features(date_month, self.columns_features)
+      df_features = self.get_features(date_dataset, self.columns_features)
       print("Reading and cleaning target")
-      df_target = self.get_targets(date_month, self.columns_targets)
+      df_target = self.get_targets(date_dataset, self.columns_targets)
       print("Combining feature and target data")
-      df_dataset = self.combine_features_target(df_features, df_target)
-
-      if not os.path.exists("data_out"):
-          os.mkdir("data_out")
+      df = self.combine_features_target(df_features, df_target)
+      print("writing merged and cleaned data for", date_dataset.strftime('%Y-%m-%d'),
+            "for", df.shape[0], "rows with", df.shape[1], "columns.")
       file_output = "cleaned_merged_" + date_dataset.strftime('%Y-%m-%d') + ".csv"
       print("Saving merged and cleaned data to", file_output)
-      self.save_df_locally(df_dataset, self.dir_output_data, file_output)
-      print("Copying file to bucket to", self.dir_output_data)
-      self.local_file_to_bucket(file_source = data_out + "/" + file_output,
+      self.save_df_locally(df, self.dir_output_data, file_output)
+      print("Copying file to bucket in", self.dir_output_data)
+      self.local_file_to_bucket(file_source = "02_cleaned/" + file_output,
                                 dir_bucket = self.dir_output_data)
