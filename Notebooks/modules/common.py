@@ -34,7 +34,7 @@ class GC_Data_Processing(object):
             df = pd.read_csv(f)
         return(df)
 
-    def save_df_locally(df, dir_output, file_name, as_json= False):
+    def save_df_locally(self, df, dir_output, file_name, as_json = False):
         """ Saves df as json or csv locally on server """
         if not os.path.exists(dir_output):
             os.mkdir(dir_output)
@@ -44,3 +44,13 @@ class GC_Data_Processing(object):
         else:
             file_path =  dir_output + '/' + name_dataset + '.csv'
             df.to_csv(file_path)
+
+    def clean_column_names(self, df):
+        col_names = df.columns
+        col_names = col_names.str.strip()            # Remove white spaces in front and at end of column names
+        col_names = col_names.str.lower()            # Make all columns lower case
+        col_names = col_names.str.replace(' ', '_')  # Make underscores from spaces
+        col_names = col_names.str.replace('(', '')   # Remove ( 
+        col_names = col_names.str.replace(')', '')   # Remove )
+        df.columns = col_names
+        return df            

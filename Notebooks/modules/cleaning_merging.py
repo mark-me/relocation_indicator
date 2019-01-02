@@ -162,7 +162,7 @@ class Cleaner_Merger(GC_Data_Processing):
               print('Read', month_file, "with", df_month.shape[0], "rows and", df_month.shape[1], "columns")
               df_month = df_month[(df_month['is_sole_proprietor'] == 0)] 
               print('After removing sole proprietors there are', df_month.shape[0], "rows are left")
-              df_month.columns = (df_month.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', ''))
+              df_month = self.clean_column_names(df_month)
               df_month = self.aggregate_board_members(df_month)
               df_month = self.clean_data(df_month)
               df_months_combined = df_months_combined.append(df_month)
@@ -192,7 +192,7 @@ class Cleaner_Merger(GC_Data_Processing):
               print('Read', month_file, "with", df_month.shape[0], "rows")
               df_month = df_month[(df_month['is_sole_proprietor'] == 0)] # & (one_month_df['is_discontinued'] == 0)
               print('After removing sole proprietors there are', df_month.shape[0], "rows are left")
-              df_month.columns = (df_month.columns.str.strip().str.lower().str.replace(' ', '_').str.replace('(', '').str.replace(')', ''))
+              df_month = self.clean_column_names(df_month)
               df_months_combined = df_months_combined.append(df_month)
               print('The number of rows so far by adding ', month_file, ":", df_months_combined.shape[0])
 

@@ -34,7 +34,7 @@ class Aggregate_Transform(GC_Data_Processing):
                                         'date_financial_calamity_stopped', 'date_month', 'date_relocation_last']
 
     def get_merged_data(self, date_dataset):
-        """ Reads a whole year of data from the already merged files """
+        """Reads a whole year of data from the already merged files"""
         file_name = "cleaned_merged_" + date_dataset.strftime('%Y-%m-%d') + ".csv"
         df_clean_merge = self.get_df_from_bucket(data_out + "/" + file_output, 
                                                  dtype=self.dtype_clean_merge, 
@@ -42,6 +42,7 @@ class Aggregate_Transform(GC_Data_Processing):
         return df_clean_merge
 
     def group_code_sbi(df):
+        """ """
         code_SBI_2_group1 = [1,19,35,51,53,59,61,62,63,69,72,73,74,78,79,80,82,85,86,87,88,90,93,94]
         df['code_SBI_2_group'] = np.where(df['code_sbi_2'].isin(code_SBI_2_group1), "1", "2")
         df = df.drop(axis=1, labels='code_sbi_2', inplace=False)
