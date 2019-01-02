@@ -158,7 +158,7 @@ class Cleaner_Merger(GC_Data_Processing):
       # Cleaning, transforming and combining month files
       for month_file in month_files:
           with self.gc_fs.open('graydon-data/' + month_file) as f:
-              df_month = pd.read_csv(f, sep=';', usecols= self.columns_features, index_col=False, nrows = 5000)
+              df_month = pd.read_csv(f, sep=';', usecols= self.columns_features, index_col=False) #, nrows = 5000)
               print('Read', month_file, "with", df_month.shape[0], "rows and", df_month.shape[1], "columns")
               df_month = df_month[(df_month['is_sole_proprietor'] == 0)] 
               print('After removing sole proprietors there are', df_month.shape[0], "rows are left")
@@ -188,7 +188,7 @@ class Cleaner_Merger(GC_Data_Processing):
       # Cleaning, transforming and combining month files
       for month_file in month_files:
           with self.gc_fs.open('graydon-data/' + month_file) as f:
-              df_month = pd.read_csv(f, sep=';', usecols= self.columns_targets, index_col=False, nrows = 5000)  
+              df_month = pd.read_csv(f, sep=';', usecols= self.columns_targets, index_col=False) #, nrows = 5000)  
               print('Read', month_file, "with", df_month.shape[0], "rows")
               df_month = df_month[(df_month['is_sole_proprietor'] == 0)] # & (one_month_df['is_discontinued'] == 0)
               print('After removing sole proprietors there are', df_month.shape[0], "rows are left")
@@ -217,6 +217,7 @@ class Cleaner_Merger(GC_Data_Processing):
                                      on=['id_company', 'id_branch'],
                                      how='left')
       bool_na_relocation = df_monthly['has_relocated']
+      return(df_monthly)
 
   def clean_merge_data(self, date_dataset):
       """Collecting all input data to form a montly data file."""
