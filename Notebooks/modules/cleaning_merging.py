@@ -211,7 +211,7 @@ class Cleaner_Merger(GC_Data_Processing):
 
       return(df_months_combined)
 
-  def combine_features_target(df_features, df_target):
+  def combine_features_target(self, df_features, df_target):
       """Combining features and target."""
       df_monthly = df_features.merge(df_target,
                                      on=['id_company', 'id_branch'],
@@ -221,9 +221,9 @@ class Cleaner_Merger(GC_Data_Processing):
   def clean_merge_data(self, date_dataset):
       """Collecting all input data to form a montly data file."""
       print("Reading and cleaning features")
-      df_features = self.get_features(date_dataset, self.columns_features)
+      df_features = self.get_features(date_dataset)
       print("Reading and cleaning target")
-      df_target = self.get_targets(date_dataset, self.columns_targets)
+      df_target = self.get_targets(date_dataset)
       print("Combining feature and target data")
       df = self.combine_features_target(df_features, df_target)
       print("writing merged and cleaned data for", date_dataset.strftime('%Y-%m-%d'),
