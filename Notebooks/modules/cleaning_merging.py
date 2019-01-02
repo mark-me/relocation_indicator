@@ -159,14 +159,14 @@ class Cleaner_Merger(GC_Data_Processing):
       for month_file in month_files:
           with self.gc_fs.open('graydon-data/' + month_file) as f:
               df_month = pd.read_csv(f, sep=';', usecols= self.columns_features, index_col=False) #, nrows = 5000)
-              print('Read', month_file, "with", df_month.shape[0], "rows and", df_month.shape[1], "columns")
+              print('  - Read', month_file, "with", df_month.shape[0], "rows and", df_month.shape[1], "columns")
               df_month = df_month[(df_month['is_sole_proprietor'] == 0)] 
-              print('After removing sole proprietors there are', df_month.shape[0], "rows are left")
+              print('    - After removing sole proprietors there are', df_month.shape[0], "rows are left")
               df_month = self.clean_column_names(df_month)
               df_month = self.aggregate_board_members(df_month)
               df_month = self.clean_data(df_month)
               df_months_combined = df_months_combined.append(df_month)
-              print('The number of rows so far by adding', month_file, ":", df_months_combined.shape[0])
+              print('    - The number of rows so far by adding', month_file, ":", df_months_combined.shape[0])
 
       df_months_combined = self.add_previous_relocation_dates(df_months_combined)
       df_months_combined['date_dataset'] = date_month # Add the identifier for a data-set
@@ -189,12 +189,12 @@ class Cleaner_Merger(GC_Data_Processing):
       for month_file in month_files:
           with self.gc_fs.open('graydon-data/' + month_file) as f:
               df_month = pd.read_csv(f, sep=';', usecols= self.columns_targets, index_col=False) #, nrows = 5000)  
-              print('Read', month_file, "with", df_month.shape[0], "rows")
+              print('  - Read', month_file, "with", df_month.shape[0], "rows")
               df_month = df_month[(df_month['is_sole_proprietor'] == 0)] # & (one_month_df['is_discontinued'] == 0)
-              print('After removing sole proprietors there are', df_month.shape[0], "rows are left")
+              print('    - After removing sole proprietors there are', df_month.shape[0], "rows are left")
               df_month = self.clean_column_names(df_month)
               df_months_combined = df_months_combined.append(df_month)
-              print('The number of rows so far by adding ', month_file, ":", df_months_combined.shape[0])
+              print('    - The number of rows so far by adding ', month_file, ":", df_months_combined.shape[0])
 
       df_months_combined['date_dataset'] = date_month # Add the identifier for a data-set
 
@@ -221,17 +221,17 @@ class Cleaner_Merger(GC_Data_Processing):
 
   def clean_merge_data(self, date_dataset):
       """Collecting all input data to form a montly data file."""
-      print("Reading and cleaning features")
+      print("Reading and cleaning features for", + date_dataset.strftime('%Y-%m-%d'))
       df_features = self.get_features(date_dataset)
-      print("Reading and cleaning target")
+      print("* Reading and cleaning target")
       df_target = self.get_targets(date_dataset)
-      print("Combining feature and target data")
+      print("* Combining feature and target data")
       df = self.combine_features_target(df_features, df_target)
-      print("writing merged and cleaned data for", date_dataset.strftime('%Y-%m-%d'),
+      print("* Writing merged and cleaned data for", date_dataset.strftime('%Y-%m-%d'),
             "for", df.shape[0], "rows with", df.shape[1], "columns.")
       file_output = "cleaned_merged_" + date_dataset.strftime('%Y-%m-%d') + ".csv"
-      print("Saving merged and cleaned data to", file_output)
+      print("* Saving merged and cleaned data to", file_output)
       self.save_df_locally(df, self.dir_output_data, file_output)
-      print("Copying file to bucket in", self.dir_output_data)
+      print("* Copying file to bucket in", self.dir_output_data)
       self.local_file_to_bucket(file_source = "02_cleaned/" + file_output,
                                 dir_bucket = self.dir_output_data)
