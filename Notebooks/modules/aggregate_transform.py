@@ -12,69 +12,33 @@ class Aggregate_Transform(GC_Data_Processing):
         self.dir_input_data = dir_input_data
         self.dir_output_data = dir_output_data
         self.key = ['id_branch', 'id_company', 'date_month']
-        self.key_aggregattion = ['id_branch', 'id_company']
-
-    def get_merged_data(self, data_dataset):
-        file_input = "cleaned_merged_" + date_dataset.strftime('%Y-%m-%d') + ".csv"
-        parse_dates = get_parse_dates_list_clean_merge_data()
-        dtype_input = self.get_dtype_clean_merge_data()
-        df = self.get_df_from_bucket(file_input, dtype = dtype_input, parse_dates = parse_dates)
-        return df
-
-    def get_dtype_clean_merge_data(self):
+        self.key_aggregation = ['id_branch', 'id_company']
+            def get_dtype_clean_merge_data(self):
         # Setting up dictionary of column types
-        dtype={'id_company'  :np.float64,
-               'id_branch'    :np.int64,
-               'is_discontinued':bool,
-               'code_discontinuation': np.float64,
-               'code_financial_calamity':object,
-               'financial_calamity_outcome'   : np.float64,
-               'code_legal_form' : np.float64,
-               'qty_employees' :np.float64,
-               'year_qty_employees' :np.float64,
-               'id_company_creditproxy':object,
-               'score_payment_assessment'    : np.float64,
-               'amt_revenue'  : np.float64,
-               'year_revenue'  : np.float64,
-               'amt_operating_result'   : np.float64,
-               'year_operating_result'    :object,
-               'amt_consolidated_revenue'   : np.float64,
-               'year_consolidated_revenue'   :object,
-               'amt_consolidated_operating_result'     : np.float64,
-               'year_consolidated_operating_result'   :object,
-               'qty_issued_credit_reports' : np.float64,
-               'perc_credit_limit_adjustment' :object,
-               'color_credit_status'  :object,
-               'rat_pd'              :object,
-               'score_pd'            : np.float64,
-               'has_increased_risk'  :bool,
-               'is_sole_proprietor'   :bool,
-               'code_sbi_2'         : np.float64,
-               'qty_address_mutations_total'  :np.float64,
-               'qty_address_mutations_month'   :np.float64,
-               'has_relocated':bool,
-               'qty_started_names': np.float64,
-               'qty_stopped_names': np.float64,
-               'total_changeof_board_members_' :np.float64 }
-        return dtype
+        self.dtype_clean_merge = {'id_company':np.float64,  'id_branch':np.int64, 'is_discontinued':bool,
+                                  'code_discontinuation':np.float64, 'code_financial_calamity':object,
+                                  'financial_calamity_outcome':np.float64, 'code_legal_form':np.float64,
+                                  'qty_employees':np.float64, 'year_qty_employees':np.float64,
+                                  'id_company_creditproxy':object, 'score_payment_assessment':np.float64,
+                                  'amt_revenue':np.float64, 'year_revenue':np.float64,
+                                  'amt_operating_result':np.float64, 'year_operating_result':object, 
+                                  'amt_consolidated_revenue':np.float64, 'year_consolidated_revenue':object,
+                                  'amt_consolidated_operating_result':np.float64, 'year_consolidated_operating_result':object,
+                                  'qty_issued_credit_reports':np.float64, 'perc_credit_limit_adjustment':object,
+                                  'color_credit_status':object, 'rat_pd':object, 'score_pd': np.float64,
+                                  'has_increased_risk':bool, 'is_sole_proprietor':bool, 'code_sbi_2':np.float64,
+                                  'qty_address_mutations_total':np.float64, 'qty_address_mutations_month':np.float64,
+                                  'has_relocated':bool, 'qty_started_names':np.float64, 'qty_stopped_names':np.float64,
+                                  'total_changeof_board_members_':np.float64 }
+        self.parse_dates_clean_merge = ['date_established', 'date_financial_calamity_started', 
+                                        'date_financial_calamity_stopped', 'date_month', 'date_relocation_last']
 
-    def get_parse_dates_list_clean_merge_data(self):
-        # Setting up dictionary of column types
-        parse_dates = ['date_established' , 
-                       'date_financial_calamity_started',
-                       'date_financial_calamity_stopped',
-                       'date_month', 
-                       'date_relocation_last']
-        return parse_dates
-
-    def get_clean_merged_csv(self, date_dataset):
+    def get_merged_data(self, date_dataset):
         """ Reads a whole year of data from the already merged files """
-        df_clean_merge = pd.DataFrame()   
-        dtype = self.get_dtype_clean_merge_data()
-        parse_dates = self.get_parse_dates_list_clean_merge_data()
         file_name = "cleaned_merged_" + date_dataset.strftime('%Y-%m-%d') + ".csv"
         df_clean_merge = self.get_df_from_bucket(data_out + "/" + file_output, 
-                                                 dtype=dtype, parse_dates=parse_dates)
+                                                 dtype=self.dtype_clean_merge, 
+                                                 parse_dates=self.parse_dates_clean_merge)
         return df_clean_merge
 
     def group_code_sbi(df):
@@ -96,7 +60,7 @@ class Aggregate_Transform(GC_Data_Processing):
                              ['qty_stopped_names', 'qty_stopped_names_year'],
                              ['total_changeof_board_members_', 'qty_board_changes_year']]
         for column_pair in list_column_pairs:
-            df = df.merge(df.groupby(self.key_aggregattion)[column_pair[0]] 
+            df = df.merge(df.groupby(self.key_aggregation)[column_pair[0]] 
                           .agg('sum')             
                           .rename(column_pair[1])    
                           .to_frame()       
@@ -104,6 +68,7 @@ class Aggregate_Transform(GC_Data_Processing):
         return df
 
     def calculate_mean(self, df):
+        """The mean value."""
         list_column_pairs = [['amt_consolidated_operating_result', 'mean_amt_consolidated_operating_result'],
                              ['amt_consolidated_revenue', 'mean_amt_consolidated_revenue'],
                              ['amt_operating_result', 'mean_amt_operating_result'],
@@ -112,7 +77,7 @@ class Aggregate_Transform(GC_Data_Processing):
                              ['amt_revenue', 'mean_amt_revenue'],
                              ['score_pd', 'mean_score_pd']]
         for column_pair in list_column_pairs:
-            df = df.merge(df.groupby(self.key_aggregattion)[column_pair[0]] 
+            df = df.merge(df.groupby(self.key_aggregation)[column_pair[0]] 
                           .agg('mean')             
                           .rename(column_pair[1])    
                           .to_frame()       
@@ -120,11 +85,12 @@ class Aggregate_Transform(GC_Data_Processing):
         return df    
 
     def calculate_variance(self, df):
+        """The variance of columns."""
         list_column_pairs = [['qty_employees', 'variance_qty_employees'],
                              ['qty_issued_credit_reports', 'variance_score_payment_assessment'],
                              ['score_pd', 'variance_score_pd']]
         for column_pair in list_column_pairs:
-            df = df.merge(df.groupby(self.key_aggregattion)[column_pair[0]] 
+            df = df.merge(df.groupby(self.key_aggregation)[column_pair[0]] 
                           .agg('var')             
                           .rename(column_pair[1])    
                           .to_frame()       
@@ -143,7 +109,7 @@ class Aggregate_Transform(GC_Data_Processing):
         subset_columns = self.key
         subset_columns.extend([item[0] for item in list_column_pairs])
         temp_df = df.reset_index().loc[:, subset_columns].sort_values(self.key)
-        temp_df = temp_df.groupby(self.key_aggregattion).agg(['first', 'last'])
+        temp_df = temp_df.groupby(self.key_aggregation).agg(['first', 'last'])
 
         # Calculating delta's
         for column_pair in list_column_pairs:
@@ -159,14 +125,14 @@ class Aggregate_Transform(GC_Data_Processing):
         return df 
 
     def calculate_age(self, df):
-       
-        df['max_date_month'] = df.groupby(self.key_aggregattion).date_month.transform('max')
+        """Calculate the number of years passed for date or year columns"""
+        df['max_date_month'] = df.groupby(self.key_aggregation).date_month.transform('max')
         # Company age    
         df['temp_date_established_year'] = df.date_established.apply(lambda x: x.year)
         df['company_age'] = df['max_date_month_year'] - df.temp_date_established_year 
         df = df.drop(labels =['temp_date_established_year'], axis= 1)
         # Years in current location
-        df['max_date_relocation_last'] = df.groupby(self.key_aggregattion).date_relocation_last.transform('max')
+        df['max_date_relocation_last'] = df.groupby(self.key_aggregation).date_relocation_last.transform('max')
         df['temp_max_date_relocation_last_year'] = df.max_date_relocation_last.apply(lambda x: x.year)
         df['years_in_current_location'] = df['max_date_month_year'] - df.temp_max_date_relocation_last_year 
         df = df.drop(labels =['temp_max_date_relocation_last_year', 'max_date_relocation_last'], axis= 1)
@@ -189,42 +155,27 @@ class Aggregate_Transform(GC_Data_Processing):
         return df
 
     def calculate_ratios(self, df):
-        col_list = ['amt_operating_result', 'amt_consolidated_operating_result',
-                    'amt_revenue', 'amt_consolidated_revenue']
-        for col in col_list:
-            subset_columns = ['id_branch']
-            subset_columns.extend(col)
+        column_triples = [['amt_operating_result', 'amt_consolidated_operating_result', 'ratio_operating_result_consolidated_operating_result'],
+                          ['amt_revenue', 'amt_consolidated_revenue', 'ratio_revenue_consolidated_revenue']]
+        for col in column_triples:
+            subset_columns =  self.key_aggregation + col[0:2]   # Create subset on which to perform the calculation
             temp_df = df.loc[:, subset_columns]
-            if col == 'amt_operating_result':
-                temp_df = df.groupby(self.key_aggregattion)
-                temp_df = temp_df.agg({'amt_operating_result': 'sum', 'amt_consolidated_operating_result': 'sum'}).rename(
-        columns={'amt_operating_result': 'sum_amt_operating_result', 
-                 'amt_consolidated_operating_result': 'sum_amt_consolidated_operating_result'})
-                temp_df['ratio_operating_result_consolidated_operating_result'] = np.divide(
-                    temp_df['sum_amt_operating_result'], temp_df['sum_amt_consolidated_operating_result'])
-                temp_df = temp_df.reset_index()
-                temp_df = temp_df.drop(axis=1, columns=['sum_amt_consolidated_operating_result', 
-                                                        'sum_amt_operating_result'])
-                df = df.merge(temp_df, how='left', on= ['id_branch', 'id_company'])  
-            elif col == 'amt_revenue':
-                temp_df = df.groupby(self.key_aggregattion])
-                temp_df = temp_df.agg({'amt_revenue': 'sum', 
-                    'amt_consolidated_revenue': 'sum'}).rename(columns={'amt_revenue': 'sum_amt_revenue', 
-                                                                        'amt_consolidated_revenue': 'sum_amt_consolidated_revenue'})
-                temp_df['ratio_revenue_consolidated_revenue'] = np.divide(temp_df['sum_amt_revenue'],
-                                                                         temp_df['sum_amt_consolidated_revenue'])
-                temp_df = temp_df.reset_index()
-                temp_df = temp_df.drop(axis=1, columns=['sum_amt_revenue', 'sum_amt_consolidated_revenue'])
-                df = df.merge(temp_df, how='left',  on= ['id_branch', 'id_company'])  
+            temp_df = df.groupby(self.key_aggregation)
+            temp_df = temp_df.agg({col[0]: 'sum', col[1]: 'sum'})
+            temp_df[col[2]] = np.divide(temp_df[col[0]], temp_df[col[1]]) # Calculate ratios
+            temp_df = temp_df.reset_index()                               # Clean up intermediate stuff
+            temp_df = temp_df.drop(axis=1, columns=[col[0:2]])
+            df = df.merge(temp_df, how='left', on=self.key_aggregation)  # Add back to data
         return df
 
     def set_true_if_any_true(self, df):
+        """Set's the aggregated value to True when one of the underlying values is True""" 
         # List of 'based on'-'write to' column pairs to read-write values from-to
         list_column_pairs = [['is_discontinued', 'is_discontinued_any'],
                              ['code_financial_calamity', 'has_financial_calamity'],
                              ['has_relocated', 'has_relocated_next_year']]
         for column_pair in list_column_pairs:
-            df = df.merge(df.groupby(self.key_aggregattion)[column_pair[0]] 
+            df = df.merge(df.groupby(self.key_aggregation)[column_pair[0]] 
                           .any()            
                           .rename(column_pair[1])    
                           .to_frame()       
@@ -232,31 +183,20 @@ class Aggregate_Transform(GC_Data_Processing):
         return df 
 
     def count_dummies(self, df):
-        col_list = ['color_credit_status','rat_pd', 'code_legal_form_group', 'code_SBI_2_group']
-        df = df.reset_index()
-        subset_columns = ['id_branch']
-        subset_columns.extend(col_list)
-        df['unique_id'] =  df['id_branch'].astype(str) + '_' + df['id_company'].astype(str)
-        for col in col_list:
-            temp_df = df.loc[:, subset_columns]
-            if col == 'color_credit_status':
-                temp_df = pd.crosstab(df['unique_id'], df['color_credit_status']).reset_index().rename_axis(None,
-                                                                                                            axis=1).rename(
-                    columns={"G": "qty_green_flags", "O": "qty_orange_flags","R": "qty_red_flags"})
-            elif col == 'rat_pd':
-                temp_df = pd.crosstab(df['unique_id'], df['rat_pd']).reset_index().rename_axis(None, axis=1)
-            elif col == 'code_SBI_2_group':
-                temp_df = pd.crosstab(df['unique_id'], df['code_SBI_2_group']).reset_index().rename_axis(None,
-                                                                                                            axis=1).rename(
-                    columns={"1": "SBI_group_1", "2": "SBI_group_2"})
-            elif col == 'code_legal_form_group':
-                temp_df = pd.crosstab(df['unique_id'], df['code_legal_form_group']).reset_index().rename_axis(None,
-                                                                                                            axis=1).rename(
-                    columns={"1": "code_legal_form_group_1", "2": "code_legal_form_group_2"})
-            df = df.merge(temp_df, how='left', on= ['unique_id']) 
-        return df
+        """Creates new columns based on the frequency of the underlying values."""
+        cols_count_values = [['color_credit_status', [{"G": "qty_green_flags", "O": "qty_orange_flags","R": "qty_red_flags"}]],
+                             ['rat_pd', [None]],
+                             ['code_SBI_2_group', [{"1": "SBI_group_1", "2": "SBI_group_2"}]], 
+                             ['code_legal_form_group', [{"1": "code_legal_form_group_1", "2": "code_legal_form_group_2"}]]]
+
+        df_dummy_count = df.groupby(self.key_aggregation)[cols_count_values[0]].value_counts()
+        df_dummy_count = df_dummy_count.unstack(fill_value = 0)
+        df_dummy_count = df_dummy_count.reset_index() 
+        if cols_count_values[1][0] is not None:
+            df_dummy_count = df_dummy_count.rename(columns=cols_count_values[1][0])
 
     def drop_superfluous_columns(self, df):
+        """Dropping columns that aren't used after aggregation."""
         columns_superfluous = ['date_established', 'year_consolidated_operating_result', 'year_consolidated_revenue', 
                                'year_operating_result', 'year_qty_employees', 'year_revenue',
                                'is_discontinued', 'code_financial_calamity', 'amt_consolidated_operating_result',  
@@ -273,21 +213,23 @@ class Aggregate_Transform(GC_Data_Processing):
         return df
 
     def deduplicate_rows(self, df):
-        df = df.groupby(self.key_aggregattion).first()
+        df = df.groupby(self.key_aggregation).first()
         df = df.reset_index()
         df = df.drop(axis=1, columns='index')
         return df 
 
     def impute_na_inf(self, df):
-        df[['has_financial_calamity', 'is_discontinued_any', 
-            'SBI_has_changed', 'code_legal_form_has_changed']] = df[['has_financial_calamity', 'is_discontinued_any',
-                                                                     'code_legal_form_has_changed', 'SBI_has_changed']].fillna(value=False)
-        columns_to_zero = ['mean_qty_issued_credit_reports', 'qty_green_flags', 'qty_orange_flags', 
-                           'qty_red_flags', 'AAA', 'AA', 'A', 'BBB', 'B' , 'CCC', 'CC', 'C', 'D', 
-                           'NR', 'qty_address_mutations_year', 'qty_started_names_year', 
-                           'qty_stopped_names_year', 'qty_board_changes_year', 'code_legal_form_group_1', 
-                           'code_legal_form_group_2', 'SBI_group_1', 'SBI_group_2']
-        df[columns_to_zero] = df[columns_to_zero].fillna(value=0)
+
+        cols_missing_to_false = ['has_financial_calamity', 'is_discontinued_any', 'SBI_has_changed', 'code_legal_form_has_changed']
+        df[cols_missing_to_false] = df[cols_missing_to_false].fillna(value=False)
+
+        cols_missing_to_zero = ['mean_qty_issued_credit_reports', 'qty_green_flags', 'qty_orange_flags', 
+                                'qty_red_flags', 'AAA', 'AA', 'A', 'BBB', 'B' , 'CCC', 'CC', 'C', 'D', 
+                                'NR', 'qty_address_mutations_year', 'qty_started_names_year', 
+                                'qty_stopped_names_year', 'qty_board_changes_year', 'code_legal_form_group_1', 
+                                'code_legal_form_group_2', 'SBI_group_1', 'SBI_group_2']
+        df[cols_missing_to_zero] = df[cols_missing_to_zero].fillna(value=0)
+        # Replacing infinite values with none
         df = df.replace([np.inf, -np.inf], np.nan)
         return df 
 

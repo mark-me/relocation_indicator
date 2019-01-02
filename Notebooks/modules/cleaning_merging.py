@@ -58,7 +58,7 @@ class Cleaner_Merger(GC_Data_Processing):
           df_year_months = df_date_months[df_date_months['year'] == year]['date_month']
           for blob in list_blob:
               for month in df_year_months:
-                  if (month.strftime("%Y-%m-%d") in blob.name) & ('CSV' in blob.name):
+                  if (month.strftime("%Y-%m-%d") in blob.name) & (('CSV' in blob.name) | ('csv' in blob.name)):
                       month_files.append(blob.name)
       return(month_files)
 
@@ -112,6 +112,10 @@ class Cleaner_Merger(GC_Data_Processing):
       df = self.get_df_from_bucket(self.dir_input_data + "/additional_data/location_start_date.CSV",
                                    sep=',', na_values=['', '1198-06-12', 'NA'],
                                    parse_dates=['date_relocation_last', 'date_relocation_penultimate'])
+      df.loc[df.date_relocation_last < '1700-12-31' , 'date_relocation_last'] = np.NaN
+      df['date_relocation_last'] = pd.to_datetime(df['date_relocation_last'])
+      df.loc[df.date_relocation_penultimate < '1700-12-31' , 'date_relocation_penultimate'] = np.NaN
+      df['date_relocation_penultimate'] = pd.to_datetime(df['date_relocation_penultimate'])      
       print("Read relocation data with", df.shape[0], "rows and", df.shape[1], "columns.")
       return(df)
 
