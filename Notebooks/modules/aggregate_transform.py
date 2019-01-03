@@ -276,3 +276,4 @@ class Aggregate_Transform(GC_Data_Processing):
         print("Copying file to bucket in", self.dir_output_data)
         self.local_file_to_bucket(file_source = "data_out/" + file_output,
                                   dir_bucket = self.dir_output_data)
+        return(df)
