@@ -39,10 +39,10 @@ class GC_Data_Processing(object):
         if not os.path.exists(dir_output):
             os.mkdir(dir_output)
         if as_json:        
-            file_path = dir_output + '/' + name_dataset + '.json'
+            file_path = dir_output + '/' + file_name + '.json'
             df.to_json(file_path)
         else:
-            file_path =  dir_output + '/' + name_dataset + '.csv'
+            file_path =  dir_output + '/' + file_name + '.csv'
             df.to_csv(file_path)
 
     def clean_column_names(self, df):

@@ -235,3 +235,4 @@ class Cleaner_Merger(GC_Data_Processing):
       print("* Copying file to bucket in", self.dir_output_data)
       self.local_file_to_bucket(file_source = "02_cleaned/" + file_output,
                                 dir_bucket = self.dir_output_data)
+      return(df)
