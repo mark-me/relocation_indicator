@@ -265,7 +265,7 @@ class Aggregate_Transform(GC_Data_Processing):
 
     def aggregate_transform_file(self, date_dataset):
         print("Reading merged data for", date_dataset.strftime('%Y-%m-%d'))
-        df = self.get_merged_data(data_dataset)
+        df = self.get_merged_data(date_dataset)
         df = aggregate_transform_df(df, date_dataset)
         return(df)
 
