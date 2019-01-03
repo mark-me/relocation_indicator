@@ -264,9 +264,13 @@ class Aggregate_Transform(GC_Data_Processing):
         df = self.impute_na_inf(df)
         return df    
 
-    def aggregate_transform_data(self, date_dataset):
+    def aggregate_transform_file(self, date_dataset):
         print("Reading merged data for", date_dataset.strftime('%Y-%m-%d'))
         df = self.get_merged_data(data_dataset)
+        df = aggregate_transform_df(df)
+        return(df)
+
+    def aggregate_transform_df(self, df):
         print("Read", df.shape[0], "rows with", df.shape[1], "columns.")
         df = self.aggregate(df)
         print("writing aggregated data for", date_dataset.strftime('%Y-%m-%d'), 
