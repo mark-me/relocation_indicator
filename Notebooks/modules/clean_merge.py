@@ -4,7 +4,7 @@ import gcsfs
 from google.cloud import storage
 from common import *
 
-class Cleaner_Merger(GC_Data_Processing):
+class Clean_Merge(GC_Data_Processing):
 
   def __init__(self, name_project, name_bucket, dir_input_data, dir_output_data):
       """Returns a new Cleaner Merger object."""
