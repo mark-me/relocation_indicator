@@ -266,14 +266,13 @@ class Aggregate_Transform(GC_Data_Processing):
     def aggregate_transform_file(self, date_dataset):
         print("Reading merged data for", date_dataset.strftime('%Y-%m-%d'))
         df = self.get_merged_data(data_dataset)
-        df = aggregate_transform_df(df)
+        df = aggregate_transform_df(df, date_dataset)
         return(df)
 
-    def aggregate_transform_df(self, df):
+    def aggregate_transform_df(self, df, date_dataset):
         print("Read", df.shape[0], "rows with", df.shape[1], "columns.")
         df = self.aggregate(df)
-        print("writing aggregated data for", date_dataset.strftime('%Y-%m-%d'), 
-              "for", df.shape[0], "rows with", df.shape[1], "columns.")
+        print("writing aggregated data with", df.shape[0], "rows and", df.shape[1], "columns.")
         file_output = "cleaned_merged_" + date_dataset.strftime('%Y-%m-%d') + ".csv"
         self.save_df_locally(df, self.dir_output_data, file_output)
         print("Copying file to bucket in", self.dir_output_data)
