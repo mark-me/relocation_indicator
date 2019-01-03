@@ -13,7 +13,6 @@ class Aggregate_Transform(GC_Data_Processing):
         self.dir_output_data = dir_output_data
         self.key = ['id_branch', 'id_company', 'date_month']
         self.key_aggregation = ['id_branch', 'id_company']
-            def get_dtype_clean_merge_data(self):
         # Setting up dictionary of column types
         self.dtype_clean_merge = {'id_company':np.float64,  'id_branch':np.int64, 'is_discontinued':bool,
                                   'code_discontinuation':np.float64, 'code_financial_calamity':object,
