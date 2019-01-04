@@ -56,6 +56,13 @@ class GC_Data_Processing(object):
         else:
             df.to_csv(file_path, float_format='%.6f')
 
+    def save_df_locally_feather(self, df, dir_output, file_name):
+        """ Saves df as json or csv locally on server """
+        if not os.path.exists(dir_output):
+            os.mkdir(dir_output)
+        file_path = dir_output + '/' + file_name
+        df.to_feather(file_path)
+
     def clean_column_names(self, df):
         col_names = df.columns
         col_names = col_names.str.strip()            # Remove white spaces in front and at end of column names
