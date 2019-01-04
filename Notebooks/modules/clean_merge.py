@@ -214,14 +214,14 @@ class Clean_Merge(GC_Data_Processing):
   def combine_features_target(self, df_features, df_target):
       """Combining features and target."""
       df_monthly = df_features.merge(df_target,
-                                     on=['id_company', 'id_branch'],
+                                     on=['id_company', 'id_branch', 'date_dataset'],
                                      how='left')
       bool_na_relocation = df_monthly['has_relocated']
       return(df_monthly)
 
   def clean_merge_data(self, date_dataset):
       """Collecting all input data to form a montly data file."""
-      print("Reading and cleaning features for", + date_dataset.strftime('%Y-%m-%d'))
+      print("Reading and cleaning features for", date_dataset.strftime('%Y-%m-%d'))
       df_features = self.get_features(date_dataset)
       print("* Reading and cleaning target")
       df_target = self.get_targets(date_dataset)
