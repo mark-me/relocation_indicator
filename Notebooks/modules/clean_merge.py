@@ -72,6 +72,7 @@ class Clean_Merge(GC_Data_Processing):
       df.loc[df.year_qty_employees == 'NA', 'year_qty_employees'] = np.NaN
       df['amt_revenue'] = df['amt_revenue'].str.strip()
       df.loc[df.amt_revenue == 'NA', 'amt_revenue'] = np.NaN
+      df['amt_revenue'] = df['amt_revenue'].astype(str).str.replace(',','.')
       df['year_revenue'] = df['year_revenue'].str.strip()
       df.loc[df.year_revenue == 'NA', 'year_revenue'] = 0
       df['amt_consolidated_revenue'] = df['amt_consolidated_revenue'].str.strip()
