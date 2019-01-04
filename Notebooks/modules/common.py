@@ -54,7 +54,7 @@ class GC_Data_Processing(object):
         if as_json:        
             df.to_json(file_path)
         else:
-            df.to_csv(file_path, float_format='%.6f')
+            df.to_csv(file_path)
 
     def save_df_locally_feather(self, df, dir_output, file_name):
         """ Saves df as json or csv locally on server """
