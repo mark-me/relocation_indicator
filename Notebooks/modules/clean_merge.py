@@ -65,37 +65,25 @@ class Clean_Merge(GC_Data_Processing):
   def clean_data(self, df):
       """Cleans data and returns formatted df"""
       df['date_month'] = pd.to_datetime(df['date_month'])
-      df['financial_calamity_outcome'] = df['financial_calamity_outcome'].fillna(-1)
-      df['qty_employees'] = df['qty_employees'].str.strip()
-      df.loc[df.qty_employees == 'NA', 'qty_employees'] = np.NaN
-      df['year_qty_employees'] = df['year_qty_employees'].str.strip()
-      df.loc[df.year_qty_employees == 'NA', 'year_qty_employees'] = np.NaN
-      df['amt_revenue'] = df['amt_revenue'].str.strip()
-      df.loc[df.amt_revenue == 'NA', 'amt_revenue'] = np.NaN
-      df['amt_revenue'] = df['amt_revenue'].astype(str).str.replace(',','.')
-      df['year_revenue'] = df['year_revenue'].str.strip()
-      df.loc[df.year_revenue == 'NA', 'year_revenue'] = 0
-      df['amt_consolidated_revenue'] = df['amt_consolidated_revenue'].str.strip()
-      df.loc[df.amt_consolidated_revenue == 'NA', 'amt_consolidated_revenue'] = np.NaN
-      df['amt_consolidated_revenue'] = df['amt_consolidated_revenue'].astype(str).str.replace(',','.')
-      df['year_consolidated_revenue'] = df['year_consolidated_revenue'].str.strip()
-      df.loc[df.year_consolidated_revenue == 'NA', 'year_consolidated_revenue'] = np.NaN
-      df['amt_consolidated_operating_result'] = df['amt_consolidated_operating_result'].str.strip()
-      df.loc[df.amt_consolidated_operating_result == 'NA', 'amt_consolidated_operating_result'] = np.NaN
-      df['amt_consolidated_operating_result'] = df['amt_consolidated_operating_result'].astype(str).str.replace(',','.')
-      df['year_consolidated_operating_result'] = df['year_consolidated_operating_result'].str.strip()
-      df.loc[df.year_consolidated_operating_result == 'NA', 'year_consolidated_operating_result'] = np.NaN
-      df['score_pd'] = df['score_pd'].str.strip()
-      df.loc[df.score_pd == 'NA', 'score_pd'] = np.NaN
-      df['score_pd'] = df['score_pd'].astype(str).str.replace(',','.')
-      df['has_increased_risk'] = df['has_increased_risk'].astype(bool)
       df.loc[df.date_established < '1700-12-31' , 'date_established'] = np.NaN
       df['date_established'] = pd.to_datetime(df['date_established'])
-      df['amt_operating_result'] = df['amt_operating_result'].str.strip()
-      df.loc[df.amt_operating_result == 'NA', 'amt_operating_result'] = np.NaN
-      df['amt_operating_result'] = df['amt_operating_result'].astype(str).str.replace(',','.')
-      df['year_operating_result'] = df['year_consolidated_operating_result'].str.strip()
-      df.loc[df.year_operating_result == 'NA', 'year_operating_result'] = np.NaN
+      df['date_start'] = pd.to_datetime(df['date_start'])
+      df['from_date_start'] = pd.to_datetime(df['from_date_start'])
+
+      df['financial_calamity_outcome'] = df['financial_calamity_outcome'].fillna(-1)
+
+      list_columns_comma = ['qty_employees', 'year_qty_employees',  'amt_revenue', 'year_revenue',
+                            'amt_consolidated_revenue', 'year_consolidated_revenue',
+                            'amt_consolidated_operating_result', 'year_consolidated_operating_result',
+                            'score_pd', 'amt_operating_result', 'year_operating_result',
+                            'perc_credit_limit_adjustment']
+      for col in list_columns_comma:
+          df[col] = df[col].apply(self.make_comma_decimal_float)
+
+      df['is_sole_proprietor'] = df['is_sole_proprietor'].astype(bool)
+      df['has_increased_risk'] = df['has_increased_risk'].astype(bool)
+      df['is_discontinued'] = df['is_discontinued'].astype(bool)
+
       return df
 
   def aggregate_board_members(self, df):
@@ -130,6 +118,7 @@ class Clean_Merge(GC_Data_Processing):
                                                 how='left')
       # Removing all relocation dates after the current month
       df_branch_months = df_branch_months[df_branch_months['date_month'] > df_branch_months['date_relocation_last']]
+      df_branch_months = 
       # Getting the latest relocation dates
       df_max_dates = df_branch_months.groupby(['id_company', 'id_branch', 'date_month'])['date_relocation_last', 'date_relocation_penultimate'].max()
       df_max_dates = df_max_dates.reset_index()
