@@ -42,7 +42,7 @@ class GC_Data_Processing(object):
         if as_json:        
             df.to_json(file_path)
         else:
-            df.to_csv(file_path)
+            df.to_csv(file_path, float_format='{:f}'.format)
 
     def clean_column_names(self, df):
         col_names = df.columns
