@@ -18,6 +18,17 @@ class GC_Data_Processing(object):
     def get_gc_fs(self):
         return self.gc_fs
 
+    def make_comma_decimal_float(self, x):
+        if type(x) is str:
+            x = x.strip()
+            x = x.replace(',','.')
+            if x.lower() in ['na', 'nan']: 
+                x = np.NaN
+            x = pd.to_numeric(x)
+            return x
+        else:
+            return x
+
     def local_file_to_bucket(self, file_source, dir_bucket):
         """Uploads a file to the Google Cloud Bucket."""
         file_destination = dir_bucket + "/" + os.path.basename(file_source)
