@@ -38,11 +38,11 @@ class GC_Data_Processing(object):
         """ Saves df as json or csv locally on server """
         if not os.path.exists(dir_output):
             os.mkdir(dir_output)
-            file_path = dir_output + '/' + file_name
+        file_path = dir_output + '/' + file_name
         if as_json:        
             df.to_json(file_path)
         else:
-            df.to_csv(file_path, float_format='{:f}'.format)
+            df.to_csv(file_path, float_format='%.6f')
 
     def clean_column_names(self, df):
         col_names = df.columns
