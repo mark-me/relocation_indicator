@@ -245,7 +245,7 @@ class Aggregate_Transform(GC_Data_Processing):
         print('Calculating mean of columns')
         df = self.calculate_mean(df)
         print('Calculating ages')
-        df = self.calculate_age_based_on_date(df)
+        df = self.calculate_age(df)
         print('Creating counts from dummies')
         df = self.count_dummies(df)
         print('Calculating variance of columns')
