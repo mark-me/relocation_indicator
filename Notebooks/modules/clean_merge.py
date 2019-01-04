@@ -118,7 +118,6 @@ class Clean_Merge(GC_Data_Processing):
                                                 how='left')
       # Removing all relocation dates after the current month
       df_branch_months = df_branch_months[df_branch_months['date_month'] > df_branch_months['date_relocation_last']]
-      df_branch_months = 
       # Getting the latest relocation dates
       df_max_dates = df_branch_months.groupby(['id_company', 'id_branch', 'date_month'])['date_relocation_last', 'date_relocation_penultimate'].max()
       df_max_dates = df_max_dates.reset_index()
