@@ -42,13 +42,13 @@ class Aggregate_Transform(GC_Data_Processing):
                                                  parse_dates=self.parse_dates_clean_merge)
         return df_clean_merge
 
-    def group_code_sbi(df):
+    def group_code_sbi(self, df):
         code_SBI_2_group1 = [1,19,35,51,53,59,61,62,63,69,72,73,74,78,79,80,82,85,86,87,88,90,93,94]
         df['code_SBI_2_group'] = np.where(df['code_sbi_2'].isin(code_SBI_2_group1), "1", "2")
         df = df.drop(axis=1, labels='code_sbi_2', inplace=False)
         return df
 
-    def group_code_legal_form(df):
+    def group_code_legal_form(self, df):
         code_legal_form_group = [1,4,6,7,8,9,15,17,18]
         df['code_legal_form_group'] = np.where(df['code_legal_form'].isin(code_legal_form_group), "1", "2")
         df = df.drop(axis=1, labels='code_legal_form', inplace=False)
