@@ -2,6 +2,7 @@ import sys, os
 import gcsfs
 from google.cloud import storage
 import pandas as pd
+import numpy as np
 
 class GC_Data_Processing(object):
 
