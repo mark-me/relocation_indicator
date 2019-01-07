@@ -114,7 +114,10 @@ class Aggregate_Transform(GC_Data_Processing):
 
         # Calculating delta's
         for column_pair in list_column_pairs:
-            temp_df[column_pair[1]] = temp_df[column_pair[0]]['last'] - temp_df[column_pair[0]]['first']
+            if column_pair[0] == 'object':
+                temp_df[column_pair[1]] = temp_df[column_pair[0]]['last'] != temp_df[column_pair[0]]['first']
+            else: 
+                temp_df[column_pair[1]] = temp_df[column_pair[0]]['last'] - temp_df[column_pair[0]]['first']
 
         # Ungroup and deduplicate columns
         temp_df.columns = temp_df.columns.droplevel(1)
@@ -128,11 +131,13 @@ class Aggregate_Transform(GC_Data_Processing):
     def calculate_age(self, df):
         """Calculate the number of years passed for date or year columns"""
         df['max_date_month'] = df.groupby(self.key_aggregation).date_month.transform('max')
+        df['max_date_month_year'] = df['max_date_month'].apply(lambda x: pd.to_datetime(x).year)
         # Company age
-        df['temp_date_established_year'] = df.date_established.apply(lambda x: x.year)
+        df['temp_date_established_year'] = df['date_established'].apply(lambda x: pd.to_datetime(x).year)
         df['company_age'] = df['max_date_month_year'] - df.temp_date_established_year
         df = df.drop(labels =['temp_date_established_year'], axis= 1)
         # Years in current location
+        df['date_relocation_last'] = df['date_relocation_last'].apply(lambda x: pd.to_datetime(x))
         df['max_date_relocation_last'] = df.groupby(self.key_aggregation).date_relocation_last.transform('max')
         df['temp_max_date_relocation_last_year'] = df.max_date_relocation_last.apply(lambda x: x.year)
         df['years_in_current_location'] = df['max_date_month_year'] - df.temp_max_date_relocation_last_year
@@ -143,13 +148,11 @@ class Aggregate_Transform(GC_Data_Processing):
                            ['year_operating_result', 'years_since_last_amt_operating_result'],
                            ['year_qty_employees', 'years_since_last_qty_employees'],
                            ['year_revenue', 'years_since_last_amt_revenue']]
-        df['max_date_month_year'] = df['max_date_month'].apply(lambda x: x.year)
-
         for column_pair in list_pairs_year:
             mask = (df[column_pair[0]].astype(float) > 0)
             df_valid = df[mask]
             df[column_pair[1]] = np.nan
-            df.loc[mask, column_pair[1]] = (df['max_date_month_year'] - df_valid[column_pairp[0]].astype(float))
+            df.loc[mask, column_pair[1]] = (df['max_date_month_year'] - df_valid[column_pair[0]].astype(float))
 
         # Drop intermediate calculating columns
         df = df.drop(labels =['max_date_month', 'max_date_month_year'], axis= 1)
@@ -165,7 +168,7 @@ class Aggregate_Transform(GC_Data_Processing):
             temp_df = temp_df.agg({col[0]: 'sum', col[1]: 'sum'})
             temp_df[col[2]] = np.divide(temp_df[col[0]], temp_df[col[1]]) # Calculate ratios
             temp_df = temp_df.reset_index()                               # Clean up intermediate stuff
-            temp_df = temp_df.drop(axis=1, columns=[col[0:2]])
+            temp_df = temp_df.drop(axis=1, columns=col[0:2])
             df = df.merge(temp_df, how='left', on=self.key_aggregation)  # Add back to data
         return df
 
@@ -189,12 +192,14 @@ class Aggregate_Transform(GC_Data_Processing):
                              ['rat_pd', [None]],
                              ['code_SBI_2_group', [{"1": "SBI_group_1", "2": "SBI_group_2"}]],
                              ['code_legal_form_group', [{"1": "code_legal_form_group_1", "2": "code_legal_form_group_2"}]]]
-
-        df_dummy_count = df.groupby(self.key_aggregation)[cols_count_values[0]].value_counts()
-        df_dummy_count = df_dummy_count.unstack(fill_value = 0)
-        df_dummy_count = df_dummy_count.reset_index() 
-        if cols_count_values[1][0] is not None:
-            df_dummy_count = df_dummy_count.rename(columns=cols_count_values[1][0])
+        for col in cols_count_values:
+            df_dummy_count = df.groupby(self.key_aggregation)[col[0]].value_counts()                     
+            df_dummy_count = df_dummy_count.unstack(fill_value = 0)
+            df_dummy_count = df_dummy_count.reset_index() 
+            if cols[1][0] is not None:
+                df_dummy_count = df_dummy_count.rename(columns=cols[1][0])
+            df = df.merge(df_dummy_count, how='left', on=self.key_aggregation)  # Add back to data
+        return df        
 
     def drop_superfluous_columns(self, df):
         """Dropping columns that aren't used after aggregation."""
@@ -220,7 +225,7 @@ class Aggregate_Transform(GC_Data_Processing):
         return df
 
     def impute_na_inf(self, df):
-
+        """Imputing missings and recoding Inf's"""
         cols_missing_to_false = ['has_financial_calamity', 'is_discontinued_any', 'SBI_has_changed', 'code_legal_form_has_changed']
         df[cols_missing_to_false] = df[cols_missing_to_false].fillna(value=False)
 
@@ -246,16 +251,16 @@ class Aggregate_Transform(GC_Data_Processing):
         df = self.calculate_mean(df)
         print('Calculating ages')
         df = self.calculate_age(df)
-        print('Creating counts from dummies')
-        df = self.count_dummies(df)
+        print('Calculating deltas')
+        df = self.calculate_deltas(df)
         print('Calculating variance of columns')
         df = self.calculate_variance(df) 
         print('Calculating if any true')
         df = self.set_true_if_any_true(df)
         print('Calculating ratios')
         df = self.calculate_ratios(df)
-        print('Calculating deltas')
-        df = self.calculate_deltas(df)
+        print('Creating counts from dummies')
+        df = self.count_dummies(df)
         print('Dropping old columns')
         df = self.drop_superfluous_columns(df)
         print('Deduplicating rows of original dataframe')
