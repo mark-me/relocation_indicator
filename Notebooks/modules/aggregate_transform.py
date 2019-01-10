@@ -120,9 +120,7 @@ class Aggregate_Transform(GC_Data_Processing):
                 temp_df[column_pair[1]] = temp_df[column_pair[0]]['last'] - temp_df[column_pair[0]]['first']
 
         # Ungroup and deduplicate columns
-        temp_df.columns = temp_df.columns.droplevel(1)
-        temp_df = temp_df.loc[:,~temp_df.columns.duplicated()]
-        temp_df = temp_df.drop(axis=1, columns=col_list)
+        temp_df = temp_df.drop(axis=1, columns=[item[0] for item in list_column_pairs])
 
         # Add delta's to original data-frame
         df = df.merge(temp_df, how='left', on=['date_month', 'id_company', 'id_branch'])
