@@ -2,3 +2,5 @@
 */files_to_bucket
 */.ipynb_checkpoints/*
 Notebooks/02_cleaned/
+/modelling/models/*
+/modelling/predictions/*
